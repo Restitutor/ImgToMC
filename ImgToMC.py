@@ -37,7 +37,7 @@ def onfimHandler(link):
 
 def generateTellraw(hexList):
     out = []
-    out.append('tellraw @a [""')
+    out.append('tellraw @a [" "')
     for x in hexList:
         out.append(",")
         out.append(r'{"text":"#","color":"#' + x + r'"}')
