@@ -10,7 +10,7 @@ def getImage(url):
         cv.imdecode(
             np.asarray(bytearray(response.read()), dtype=np.uint8), cv.IMREAD_COLOR
         ),
-        (53, 20),
+        (160, 20),
         cv.INTER_LANCZOS4,
     )
 
@@ -38,10 +38,11 @@ def onfimHandler(link):
 
 def generateTellraw(hexList):
     out = []
-    out.append('tellraw @a [" "')
+
+    out.append('tellraw @a ["\n"')
     for x in hexList:
         out.append(",")
-        out.append(r'{"text":"#","color":"#' + x + r'"}')
+        out.append(r'{"text":"▏","color":"#' + x + r'"}')
     out.append("]")
     return "".join(out)
 
