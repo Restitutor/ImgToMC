@@ -11,6 +11,7 @@ def getImage(url):
             np.asarray(bytearray(response.read()), dtype=np.uint8), cv.IMREAD_COLOR
         ),
         (53, 20),
+        cv.INTER_LANCZOS4,
     )
 
 
