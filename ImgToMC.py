@@ -6,13 +6,18 @@ import cv2 as cv
 
 def getImage(url):
     response = requests.get(url, stream=True).raw
-    image = cv.imdecode(np.asarray(bytearray(response.read()), dtype=np.uint8), cv.IMREAD_COLOR)
-    height = round((160/image.shape[1] * image.shape[0])/5)
-    if height >= 32:
-        height = 31
+    return cv.imdecode(np.asarray(bytearray(response.read()), dtype=np.uint8), cv.IMREAD_COLOR)
+
+
+def resizeImage(image, height=None, width=160):
+    if height is None:
+        height = round((width/image.shape[1] * image.shape[0])/5)
+        if height >= 32:
+            height = 31
+
     return cv.resize(
         image,
-        (160, height),
+        (width, height),
         cv.INTER_LANCZOS4,
     )
 
@@ -34,23 +39,31 @@ def compactOut(hexList):
 
 def onfimHandler(link):
     return gzip.compress(
-        compactOut(hexify(makeRGBArray(getImage(link.strip())))).encode("utf-8")
+        compactOut(hexify(makeRGBArray(resizeImage(getImage(link.strip()))))).encode("utf-8")
     )
 
 
-def generateTellraw(hexList):
-    out = []
-    out.append(r'tellraw @a {"text":"Hover to view image.","hoverEvent":{"action":"show_text","contents":["\n"')
+def generateHover(hexList, width=160):
+    out = [r'tellraw @a {"text":"Hover to view image.","hoverEvent":{"action":"show_text","contents":["\n"']
 
     index = 0
     for x in hexList:
         out.append(r',{"text":"')
-        if index >= 160:
+        if index >= width:
             out.append(r'\n')
-            index = 0
+            index -= width
         out.append(r'▏","color":"#' + x + r'"}')
         index += 1
     out.append(r"]}}")
+    return "".join(out)
+
+
+def generateText(hexList):
+    out = ['tellraw @a ["\n"']
+    for x in hexList:
+        out.append(",")
+        out.append(r'{"text":"▏","color":"#' + x + r'"}')
+    out.append("]")
     return "".join(out)
 
 
@@ -63,4 +76,4 @@ def write(text):
 # requires string of url as an argument
 
 if __name__ == "__main__":
-    write(generateTellraw(hexify(makeRGBArray(getImage(input("URL: "))))))
+    write(generateText(hexify(makeRGBArray(resizeImage(getImage(input("URL: ")))))))
