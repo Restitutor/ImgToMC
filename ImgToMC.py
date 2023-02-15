@@ -3,6 +3,12 @@ import requests
 import numpy as np
 import cv2 as cv
 
+try:
+    import aiohttp
+    import asyncio
+except ImportError:
+    aiohttp = None
+
 
 def isInvalidHeader(headers):
     try:
@@ -21,11 +27,20 @@ def isInvalidHeader(headers):
 
     return False  # No error
 
+async def readUrlAsync(url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if not isInvalidHeader(response.headers.get('Content-Length')):
+                return await response.read()
+
 
 def readUrl(url):
-    response = requests.get(url, stream=True)
-    if not isInvalidHeader(response.headers):
-        return response.raw.read()
+    if aiohttp is None:
+        response = requests.get(url, stream=True)
+        if not isInvalidHeader(response.headers):
+            return response.raw.read()
+    else:
+        return asyncio.run(readUrlAsync(url))
 
 
 def getImage(arr):
