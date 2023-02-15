@@ -48,7 +48,7 @@ def onfimHandler(arr):
     )
 
 
-def generateHover(hexList, width=160):
+def generateHover(hexList, character='▏', width=160):
     out = [
         r'tellraw @a {"text":"Hover to view image.","hoverEvent":{"action":"show_text","contents":["\n"'
     ]
@@ -59,17 +59,17 @@ def generateHover(hexList, width=160):
         if index >= width:
             out.append(r"\n")
             index -= width
-        out.append(r'▏","color":"#' + x + r'"}')
+        out.append(character + r'","color":"#' + x + r'"}')
         index += 1
     out.append(r"]}}")
     return "".join(out)
 
 
-def generateText(hexList):
+def generateText(hexList, character='▏'):
     out = ['tellraw @a ["\n"']
     for x in hexList:
         out.append(",")
-        out.append(r'{"text":"▏","color":"#' + x + r'"}')
+        out.append(r'{"text":"' + character + r'","color":"#' + x + r'"}')
     out.append("]")
     return "".join(out)
 
