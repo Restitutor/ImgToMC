@@ -84,12 +84,4 @@ if __name__ == "__main__":
             )
         )
     )
-    write(
-        generateHoverTellraw(
-            generateJson(
-                hexify(makeRGBArray(resizeImage(getImage(readUrl(input("URL: "))))))
-            )
-        ),
-        "hover.txt"
-    )
     
