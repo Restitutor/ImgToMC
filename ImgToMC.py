@@ -74,8 +74,8 @@ def generateText(hexList):
     return "".join(out)
 
 
-def write(text):
-    with open("tellraw.txt", "w", encoding="utf-8") as f:
+def write(text, path="tellraw.txt"):
+    with open(path, "w", encoding="utf-8") as f:
         f.write(text)
 
 
