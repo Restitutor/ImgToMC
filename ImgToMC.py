@@ -4,14 +4,17 @@ import numpy as np
 import cv2 as cv
 
 
-def getImage(url):
-    response = requests.get(url, stream=True).raw
-    return cv.imdecode(np.asarray(bytearray(response.read()), dtype=np.uint8), cv.IMREAD_COLOR)
+def readUrl(url):
+    return requests.get(url, stream=True).raw.read()
+
+
+def getImage(arr):
+    return cv.imdecode(np.asarray(bytearray(arr), dtype=np.uint8), cv.IMREAD_COLOR)
 
 
 def resizeImage(image, height=None, width=160):
     if height is None:
-        height = round((width/image.shape[1] * image.shape[0])/5)
+        height = round((width / image.shape[1] * image.shape[0]) / 5)
         if height >= 32:
             height = 31
 
@@ -37,20 +40,24 @@ def compactOut(hexList):
     return "".join(hexList)
 
 
-def onfimHandler(link):
+def onfimHandler(arr):
     return gzip.compress(
-        compactOut(hexify(makeRGBArray(resizeImage(getImage(link.strip()))))).encode("utf-8")
+        compactOut(hexify(makeRGBArray(resizeImage(getImage(arr), height=20)))).encode(
+            "utf-8"
+        )
     )
 
 
 def generateHover(hexList, width=160):
-    out = [r'tellraw @a {"text":"Hover to view image.","hoverEvent":{"action":"show_text","contents":["\n"']
+    out = [
+        r'tellraw @a {"text":"Hover to view image.","hoverEvent":{"action":"show_text","contents":["\n"'
+    ]
 
     index = 0
     for x in hexList:
         out.append(r',{"text":"')
         if index >= width:
-            out.append(r'\n')
+            out.append(r"\n")
             index -= width
         out.append(r'▏","color":"#' + x + r'"}')
         index += 1
@@ -76,4 +83,8 @@ def write(text):
 # requires string of url as an argument
 
 if __name__ == "__main__":
-    write(generateText(hexify(makeRGBArray(resizeImage(getImage(input("URL: ")))))))
+    write(
+        generateText(
+            hexify(makeRGBArray(resizeImage(getImage(readUrl(input("URL: "))))))
+        )
+    )
