@@ -48,11 +48,8 @@ def onfimHandler(arr):
     )
 
 
-def generateHover(hexList, character='▏', width=160):
-    out = [
-        r'tellraw @a {"text":"Hover to view image.","hoverEvent":{"action":"show_text","contents":["\n"'
-    ]
-
+def generateJson(hexList, character='▏', width=160):
+    out = [r'["\n"']
     index = 0
     for x in hexList:
         out.append(r',{"text":"')
@@ -61,17 +58,14 @@ def generateHover(hexList, character='▏', width=160):
             index -= width
         out.append(character + r'","color":"#' + x + r'"}')
         index += 1
-    out.append(r"]}}")
-    return "".join(out)
-
-
-def generateText(hexList, character='▏'):
-    out = ['tellraw @a ["\n"']
-    for x in hexList:
-        out.append(",")
-        out.append(r'{"text":"' + character + r'","color":"#' + x + r'"}')
     out.append("]")
     return "".join(out)
+
+def generateHoverTellraw(json):
+    return r'tellraw @a {"text":"Hover to view image.","hoverEvent":{"action":"show_text","contents":' + json + r'}}'
+
+def generateTellraw(json):
+    return r'tellraw @a ' + json
 
 
 def write(text, path="tellraw.txt"):
@@ -84,7 +78,18 @@ def write(text, path="tellraw.txt"):
 
 if __name__ == "__main__":
     write(
-        generateText(
-            hexify(makeRGBArray(resizeImage(getImage(readUrl(input("URL: "))))))
+        generateTellraw(
+            generateJson(
+                hexify(makeRGBArray(resizeImage(getImage(readUrl(input("URL: "))))))
+            )
         )
     )
+    write(
+        generateHoverTellraw(
+            generateJson(
+                hexify(makeRGBArray(resizeImage(getImage(readUrl(input("URL: "))))))
+            )
+        ),
+        "hover.txt"
+    )
+    
