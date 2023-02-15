@@ -4,8 +4,28 @@ import numpy as np
 import cv2 as cv
 
 
+def isInvalidHeader(headers):
+    try:
+        size = int(headers['Content-Length'])
+        if size > 2e7:  # 20 MB
+            return f"Size is {size} bytes"
+    except Exception:
+        pass
+
+    try:
+        ct = headers['Content-Type']
+        if 'image' not in ct:
+            return f"Link is {ct}."
+    except Exception:
+        pass
+
+    return False  # No error
+
+
 def readUrl(url):
-    return requests.get(url, stream=True).raw.read()
+    response = requests.get(url, stream=True)
+    if not isInvalidHeader(response.headers):
+        return response.raw.read()
 
 
 def getImage(arr):
