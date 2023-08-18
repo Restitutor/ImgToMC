@@ -47,7 +47,7 @@ def getImage(arr):
     return cv.imdecode(np.asarray(bytearray(arr), dtype=np.uint8), cv.IMREAD_COLOR)
 
 
-def resizeImage(image, height=None, width=160):
+def resizeImage(image, height=None, width=240):
     if height is None:
         height = round((width / image.shape[1] * image.shape[0]) / 5)
         if height >= 32:
@@ -83,7 +83,7 @@ def onfimHandler(arr):
     )
 
 
-def generateJson(hexList, character='▏', width=160):
+def generateJson(hexList, character='▏', width=240):
     out = [r'["\n"']
     index = 0
     for x in hexList:
@@ -108,14 +108,28 @@ def write(text, path="tellraw.txt"):
         f.write(text)
 
 
+# <1.20 the width should be 160 to fit most screens.
+# 1.20 changed the width of the character we use, here are new values to implement:
+# GUI Scale x1: ~<960
+# GUI Scale x2: ~<480
+# GUI Scale x3: ~<320
+# GUI Scale x4: =<240
+# these numbers work for most screens (16:9)
+
 # idk where you wanna get the url but this'll do it
-# requires string of url as an argument
+# requires string of url as an argument (+ optionally width)
 
 if __name__ == "__main__":
+    width = input("width (press enter for default): ")
+    if (width == ""):
+        width = 240
+    else:
+        width = int(width)
+
     write(
-        generateTellraw(
+        generateHoverTellraw(
             generateJson(
-                hexify(makeRGBArray(resizeImage(getImage(readUrl(input("URL: "))))))
+                hexify(makeRGBArray(resizeImage(getImage(readUrl(input("URL: "))),width=width))),width=width
             )
         )
     )
