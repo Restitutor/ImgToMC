@@ -205,18 +205,49 @@ class MinecraftImage:
         rgb = cv.cvtColor(self._image, cv.COLOR_BGR2RGB)
         return "".join(f"{r:02X}{g:02X}{b:02X}" for r, g, b in rgb.reshape(-1, 3))
 
-    def to_hover_command(self) -> str:
-        """Generate Minecraft tellraw command with hover text."""
+    def _generate_content(self) -> list[dict[str, str]]:
+        """Generate content array with proper line breaks and color run optimization."""
         hex_data = self.get_hex_data()
-        h, w = self._image.shape[:2]
+        _h, w = self._image.shape[:2]
 
         content = [{"text": "\n"}]  # First line has unequal spacing. Skip it.
+
+        current_color = None
+        current_text = ""
+
+        def flush_run() -> None:
+            nonlocal current_text
+            if current_text:
+                content.append({"text": current_text, "color": f"#{current_color}"})
+                current_text = ""
+
         for i in range(0, len(hex_data), 6):
-            if i > 0 and (i // 6) % w == 0:
+            pixel_index = i // 6
+
+            # Check if we need a line break
+            if pixel_index > 0 and pixel_index % w == 0:
+                flush_run()
                 content.append({"text": "\n"})
-            content.append(
-                {"text": self.config.character, "color": f"#{hex_data[i : i + 6]}"},
-            )
+
+            color = hex_data[i : i + 6]
+
+            if color == current_color:
+                # Same color, add to current run
+                current_text += self.config.character
+            else:
+                # Color changed, flush current run and start new one
+                flush_run()
+                current_text = self.config.character
+                current_color = color
+
+        # Flush final run
+        flush_run()
+
+        return content
+
+    def to_hover_command(self) -> str:
+        """Generate Minecraft tellraw command with hover text."""
+        content = self._generate_content()
 
         command = {
             "text": "Hover to view image.",
@@ -225,15 +256,8 @@ class MinecraftImage:
         return f"tellraw @a {json.dumps(command, separators=(',', ':'))}"
 
     def to_text_command(self) -> str:
-        """Generate Minecraft tellraw command with direct text display. Needs fixing."""
-        hex_data = self.get_hex_data()
-
-        content = ["\n"]
-        content.extend(
-            {"text": self.config.character, "color": f"#{hex_data[i : i + 6]}"}
-            for i in range(0, len(hex_data), 6)
-        )
-
+        """Generate Minecraft tellraw command with direct text display."""
+        content = self._generate_content()
         return f"tellraw @a {json.dumps(content, separators=(',', ':'))}"
 
     @property
@@ -262,5 +286,5 @@ if __name__ == "__main__":
     # Simple usage
     url = input("Enter image URL: ")
     img = MinecraftImage.from_url(url)
-    write_command(img.to_hover_command())
+    write_command(img.to_text_command())
     print(f"Saved command for {img.dimensions[0]}x{img.dimensions[1]} image")
