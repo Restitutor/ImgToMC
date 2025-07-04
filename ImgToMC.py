@@ -267,12 +267,19 @@ class MinecraftImage:
         return (w, h)
 
     def gzip_export(self) -> tuple[int, int, bytes]:
-        """Process image bytes and return dimensions and compressed hex data.
+        """Process image bytes and return dimensions and compressed binary data.
 
         Used for API into Velocity plugin.
         """
+
+        def get_binary_data() -> bytes:
+            """Get compacted binary color data (3 bytes per pixel)."""
+            # Convert BGR to RGB and flatten to bytes
+            rgb = cv.cvtColor(self._image, cv.COLOR_BGR2RGB)
+            return rgb.tobytes()
+
         w, h = self.dimensions
-        return (w, h, gzip.compress(self.get_hex_data().encode("utf-8")))
+        return (w, h, gzip.compress(get_binary_data()))
 
 
 # Convenience functions
